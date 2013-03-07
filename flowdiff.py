@@ -135,6 +135,7 @@ def main():
 			n += 1
 	except (ValueError, IndexError):
 		print_usage()
+		raise SystemExit(1)
 	else:
 		flows = [Flow(fn) for fn in filenames]
 		diff_flows(flows, skip_offset=skip_offset, max_entries=max_entries)
