@@ -113,7 +113,7 @@ def diff_flows(flows, skip_offset=None, max_entries=None):
 		print T.bold_black('-' * (T.width - 1))
 
 def main():
-	from sys import argv, stderr
+	from sys import argv
 	n = 1
 	filenames = []
 	skip_offset = {}
@@ -134,13 +134,17 @@ def main():
 				filenames.append(arg)
 			n += 1
 	except (ValueError, IndexError):
-		print >> stderr, "Usage: {0} [-m max_entries] [-s skip_sent_bytes] [-r skip_recvd_bytes] <filename> ...".format(argv[0])
+		print_usage()
 	else:
 		flows = [Flow(fn) for fn in filenames]
 		diff_flows(flows, skip_offset=skip_offset, max_entries=max_entries)
 		print 'Input files:'
 		for n, fn in enumerate(filenames):
 			print ' - ' + COLORS[n](fn)
+
+def print_usage():
+	from sys import argv, stderr
+	print >> stderr, "Usage: {0} [-m max_entries] [-s skip_sent_bytes] [-r skip_recvd_bytes] <filename> ...".format(argv[0])
 
 if __name__ == '__main__':
 	main()
