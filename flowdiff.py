@@ -114,6 +114,8 @@ def diff_flows(flows, skip_offset=None, max_entries=None):
 
 def main():
 	from sys import argv
+	if '-h' in argv:
+		return print_usage()
 	n = 1
 	filenames = []
 	skip_offset = {}
