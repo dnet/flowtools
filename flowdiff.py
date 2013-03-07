@@ -133,6 +133,8 @@ def main():
 			else:
 				filenames.append(arg)
 			n += 1
+		if not filenames:
+			raise ValueError('No files were given that day')
 	except (ValueError, IndexError):
 		print_usage()
 		raise SystemExit(1)
