@@ -73,7 +73,7 @@ class FakeSocket(object):
 		for s in self.init_socket():
 			s.setblocking(1)
 			for n, entry in enumerate(self.flow):
-				if entry.direction == self.EXPECT:
+				if entry.direction is self.EXPECT:
 					recvd = 0
 					expected = len(entry.data)
 					while recvd < expected:
@@ -81,7 +81,7 @@ class FakeSocket(object):
 						if buf:
 							recvd += len(buf)
 							print '[{0:02d}-recv]'.format(n), hexlify(buf)
-				elif entry.direction == self.SEND:
+				elif entry.direction is self.SEND:
 					print '[{0:02d}-send]'.format(n), hexlify(entry.data)
 					s.send(entry.data)
 
