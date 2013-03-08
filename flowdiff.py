@@ -53,7 +53,7 @@ def diff_flows(flows, skip_offset=None, max_entries=None):
 		common_bytes = [n for n in xrange(min_len) if all(e.data[n] == first_data[n] for e in entries[1:])]
 		
 		if len(lengths) > 1:
-			look_for_length_byte(min_len, entries)
+			look_for_length_byte(entries)
 			for match_len in xrange(min_len - 1, 0, -1):
 				fd_match = first_data[-match_len:]
 				if all(e.data[-match_len:] == fd_match for e in entries[1:]):
@@ -77,9 +77,9 @@ def diff_flows(flows, skip_offset=None, max_entries=None):
 
 		print T.bold_black('-' * (T.width - 1))
 
-def look_for_length_byte(min_len, entries):
-	for i in xrange(min_len):
-		diffs = set(ord(e.data[i]) - len(e.data) for e in entries)
+def look_for_length_byte(entries):
+	for i, pos_bytes in enumerate(izip(*(e.data for e in entries))):
+		diffs = set(ord(b) - len(e.data) for e, b in izip(entries, pos_bytes))
 		if len(diffs) == 1:
 			diff = abs(next(iter(diffs)))
 			print '[i] Possible length byte at offset {0}, diff = {1}'.format(i, diff)
