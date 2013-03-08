@@ -34,8 +34,9 @@ T = Terminal()
 COLORS = [T.cyan, T.green, T.yellow, T.red]
 
 def diff_flows(flows, skip_offset=None, max_entries=None):
-	for entry_no, entries in enumerate(izip(*(flows if skip_offset is None
-			else (f.filter_by_offset(skip_offset) for f in flows)))):
+	if skip_offset is not None:
+		flows = (f.filter_by_offset(skip_offset) for f in flows)
+	for entry_no, entries in enumerate(izip(*flows)):
 		if max_entries is not None and entry_no == max_entries:
 			break
 
