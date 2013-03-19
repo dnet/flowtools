@@ -30,6 +30,7 @@ from __future__ import print_function
 from flow import Flow
 from socket import socket, SO_REUSEADDR, SOL_SOCKET
 from binascii import hexlify
+from ui import COLORS, horizontal_separator
 
 def main():
 	from sys import argv
@@ -71,25 +72,35 @@ class FakeSocket(object):
 		self.socket.close()
 
 	def start(self):
+		diff = COLORS[2]
 		for s in self.init_socket():
 			s.setblocking(1)
 			for n, entry in enumerate(self.flow):
+				horizontal_separator()
 				if entry.direction is self.EXPECT:
 					recvd = 0
 					expected = len(entry.data)
-					print('[{0:02d}-xpct]'.format(n), hexlify(entry.data))
-					print('[{0:02d}-recv]'.format(n), end=' ')
+					entry_header(n, 'xpct', 1, entry.data)
+					entry_header(n, 'recv', 2)
 					while recvd < expected:
 						buf = s.recv(1)
 						if buf:
+							print(diff(hexlify(buf)) if buf != entry.data[recvd] else '..', end='')
 							recvd += len(buf)
-							print(hexlify(buf), end='')
 						else:
 							break
-					print(' (end)')
+					print('')
 				elif entry.direction is self.SEND:
-					print('[{0:02d}-send]'.format(n), hexlify(entry.data))
+					entry_header(n, 'send', 0, entry.data)
 					s.send(entry.data)
+			horizontal_separator()
+
+
+def entry_header(num, title, color, data=None):
+	c = COLORS[color]
+	print('[{0:02d}-{1}]'.format(num, c(title)), end=' ')
+	if data:
+		print(c(hexlify(data)))
 
 
 class FakeServer(FakeSocket):
