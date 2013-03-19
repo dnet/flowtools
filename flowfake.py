@@ -26,6 +26,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
+from __future__ import print_function
 from flow import Flow
 from socket import socket, SO_REUSEADDR, SOL_SOCKET
 from binascii import hexlify
@@ -61,7 +62,7 @@ class FakeSocket(object):
 		self.socket = socket()
 		self.socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
 		self.address = address
-		print 'Socket created:', address
+		print('Socket created:', address)
 
 	def __enter__(self):
 		return self
@@ -80,9 +81,9 @@ class FakeSocket(object):
 						buf = s.recv(expected - recvd)
 						if buf:
 							recvd += len(buf)
-							print '[{0:02d}-recv]'.format(n), hexlify(buf)
+							print('[{0:02d}-recv]'.format(n), hexlify(buf))
 				elif entry.direction is self.SEND:
-					print '[{0:02d}-send]'.format(n), hexlify(entry.data)
+					print('[{0:02d}-send]'.format(n), hexlify(entry.data))
 					s.send(entry.data)
 
 
@@ -96,7 +97,7 @@ class FakeServer(FakeSocket):
 		s.listen(5)
 		while True:
 			sock, addr = s.accept()
-			print 'Accepted connection from', addr
+			print('Accepted connection from', addr)
 			yield sock
 
 
@@ -111,7 +112,8 @@ class FakeClient(FakeSocket):
 
 def print_usage():
 	from sys import argv, stderr
-	print >> stderr, "Usage: {0} (-s listen_port | -c connect_host connect_port) <filename>".format(argv[0])
+	print("Usage: {0} (-s listen_port | -c connect_host connect_port) <filename>".format(argv[0]),
+			file=stderr)
 
 
 if __name__ == '__main__':
