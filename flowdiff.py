@@ -27,7 +27,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 from flow import Flow
-from itertools import izip
+from itertools import izip, islice
 from ui import COLORS, horizontal_separator
 
 def diff_flows(flows, skip_offset=None, max_entries=None):
@@ -62,6 +62,8 @@ def diff_flows(flows, skip_offset=None, max_entries=None):
 		all_same = (len(set(e.data for e in entries)) == 1)
 		if all_same:
 			entries = (entries[0],)
+		else:
+			look_for_fix_diff(entries)
 
 		for i, entry in enumerate(entries):
 			print ''
@@ -81,6 +83,18 @@ def look_for_length_byte(entries):
 		if len(diffs) == 1:
 			diff = abs(next(iter(diffs)))
 			print '[i] Possible length byte at offset {0}, diff = {1}'.format(i, diff)
+
+def look_for_fix_diff(entries):
+	for i, pos_bytes_1 in enumerate(izip(*(e.data for e in entries))):
+		if len(set(pos_bytes_1)) == 1:
+			continue
+		for j, pos_bytes_2 in islice(enumerate(izip(*(e.data for e in entries))), i):
+			diffs = set(ord(a) - ord(b) for a, b in izip(pos_bytes_1, pos_bytes_2))
+			if len(diffs) == 1:
+				diff = abs(next(iter(diffs)))
+				fmt = ('[i] difference between bytes {0} and {1} is always {2}'
+						if diff else '[i] bytes {0} and {1} always match')
+				print fmt.format(i, j, diff)
 
 def main():
 	from sys import argv
