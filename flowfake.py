@@ -77,11 +77,16 @@ class FakeSocket(object):
 				if entry.direction is self.EXPECT:
 					recvd = 0
 					expected = len(entry.data)
+					print('[{0:02d}-xpct]'.format(n), hexlify(entry.data))
+					print('[{0:02d}-recv]'.format(n), end=' ')
 					while recvd < expected:
-						buf = s.recv(expected - recvd)
+						buf = s.recv(1)
 						if buf:
 							recvd += len(buf)
-							print('[{0:02d}-recv]'.format(n), hexlify(buf))
+							print(hexlify(buf), end='')
+						else:
+							break
+					print(' (end)')
 				elif entry.direction is self.SEND:
 					print('[{0:02d}-send]'.format(n), hexlify(entry.data))
 					s.send(entry.data)
