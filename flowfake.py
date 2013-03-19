@@ -96,6 +96,7 @@ class FakeServer(FakeSocket):
 		s.bind(self.address)
 		s.listen(5)
 		while True:
+			print('Listening...')
 			sock, addr = s.accept()
 			print('Accepted connection from', addr)
 			yield sock
