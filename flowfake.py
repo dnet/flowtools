@@ -31,9 +31,9 @@ from flow import Flow
 from socket import socket, SO_REUSEADDR, SOL_SOCKET
 from binascii import hexlify
 from ui import COLORS, horizontal_separator
+from sys import argv, stdout, stderr
 
 def main():
-	from sys import argv
 	if '-h' in argv:
 		return print_usage()
 	try:
@@ -86,6 +86,7 @@ class FakeSocket(object):
 						buf = s.recv(1)
 						if buf:
 							print(diff(hexlify(buf)) if buf != entry.data[recvd] else '..', end='')
+							stdout.flush()
 							recvd += len(buf)
 						else:
 							break
@@ -101,6 +102,7 @@ def entry_header(num, title, color, data=None):
 	print('[{0:02d}-{1}]'.format(num, c(title)), end=' ')
 	if data:
 		print(c(hexlify(data)))
+	stdout.flush()
 
 
 class FakeServer(FakeSocket):
@@ -128,7 +130,6 @@ class FakeClient(FakeSocket):
 
 
 def print_usage():
-	from sys import argv, stderr
 	print("Usage: {0} (-s listen_port | -c connect_host connect_port) <filename>".format(argv[0]),
 			file=stderr)
 
