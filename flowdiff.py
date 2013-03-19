@@ -28,10 +28,7 @@
 
 from flow import Flow
 from itertools import izip
-from blessings import Terminal
-
-T = Terminal()
-COLORS = [T.cyan, T.green, T.yellow, T.red]
+from ui import COLORS, horizontal_separator
 
 def diff_flows(flows, skip_offset=None, max_entries=None):
 	if skip_offset is not None:
@@ -76,7 +73,7 @@ def diff_flows(flows, skip_offset=None, max_entries=None):
 		if all_same:
 			print '(all entries are the same)'
 
-		print T.bold_black('-' * (T.width - 1))
+		horizontal_separator()
 
 def look_for_length_byte(entries):
 	for i, pos_bytes in enumerate(izip(*(e.data for e in entries))):
