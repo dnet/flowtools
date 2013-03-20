@@ -93,9 +93,11 @@ def look_for_fix_diff(entries):
 			diffs = set(ord(a) - ord(b) for a, b in izip(pos_bytes_1, pos_bytes_2))
 			if len(diffs) == 1:
 				diff = abs(next(iter(diffs)))
+				di, dj = ('{0} [{1}]'.format(pos, ' '.join(c(hexlify(v)) for c, v in izip(COLORS, values)))
+						for pos, values in ((i, pos_bytes_1), (j, pos_bytes_2)))
 				fmt = ('[i] difference between bytes {0} and {1} is always {2}'
 						if diff else '[i] bytes {0} and {1} always match')
-				print fmt.format(i, j, diff)
+				print fmt.format(di, dj, diff)
 
 def main():
 	from sys import argv
