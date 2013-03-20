@@ -31,6 +31,7 @@ from blessings import Terminal
 
 T = Terminal()
 COLORS = [T.cyan, T.green, T.yellow, T.red]
+width = T.width
 
 def horizontal_separator():
 	print(T.bold_black('-' * (T.width - 1)))

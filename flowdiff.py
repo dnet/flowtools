@@ -29,7 +29,7 @@
 from flow import Flow
 from itertools import izip, islice
 from binascii import hexlify
-from ui import COLORS, horizontal_separator
+from ui import COLORS, horizontal_separator, width
 
 def diff_flows(flows, skip_offset=None, max_entries=None):
 	if skip_offset is not None:
@@ -68,10 +68,14 @@ def diff_flows(flows, skip_offset=None, max_entries=None):
 
 		for i, entry in enumerate(entries):
 			print ''
-			print ' '.join(('..' if (n in common_bytes and i) else COLORS[
+			dump = [('..' if (n in common_bytes and i) else COLORS[
 				next(bi for bi, be in enumerate(entries) if len(be.data) >= n + 1 and
 					be.data[n] == c)](hexlify(c)))
-				for n, c in enumerate(entry.data))
+				for n, c in enumerate(entry.data)]
+			bytes_per_line = (width - (1 + 8 + 1)) / 13 * 4
+			for offset in xrange(0, len(entry.data), bytes_per_line):
+				print '{0:08x}  {1}'.format(offset, '  '.join(
+					' '.join(dump[do:do + 4]) for do in xrange(offset, offset + bytes_per_line, 4)))
 	
 		if all_same:
 			print '(all entries are the same)'
