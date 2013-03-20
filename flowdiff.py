@@ -87,7 +87,7 @@ def look_for_length_byte(entries):
 		diffs = set(ord(b) - len(e.data) for e, b in izip(entries, pos_bytes))
 		if len(diffs) == 1:
 			diff = abs(next(iter(diffs)))
-			print '[i] Possible length byte at offset {0}, diff = {1}'.format(i, diff)
+			print '[i] Possible length byte at offset 0x{0:02x}, diff = {1}'.format(i, diff)
 
 def look_for_fix_diff(entries):
 	for i, pos_bytes_1 in enumerate(izip(*(e.data for e in entries))):
@@ -97,7 +97,7 @@ def look_for_fix_diff(entries):
 			diffs = set(ord(a) - ord(b) for a, b in izip(pos_bytes_1, pos_bytes_2))
 			if len(diffs) == 1:
 				diff = abs(next(iter(diffs)))
-				di, dj = ('{0} [{1}]'.format(pos, ' '.join(c(hexlify(v)) for c, v in izip(COLORS, values)))
+				di, dj = ('0x{0:02x} [{1}]'.format(pos, ' '.join(c(hexlify(v)) for c, v in izip(COLORS, values)))
 						for pos, values in ((i, pos_bytes_1), (j, pos_bytes_2)))
 				fmt = ('[i] difference between bytes {0} and {1} is always {2}'
 						if diff else '[i] bytes {0} and {1} always match')
