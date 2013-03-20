@@ -28,6 +28,7 @@
 
 from flow import Flow
 from itertools import izip, islice
+from binascii import hexlify
 from ui import COLORS, horizontal_separator
 
 def diff_flows(flows, skip_offset=None, max_entries=None):
@@ -56,7 +57,7 @@ def diff_flows(flows, skip_offset=None, max_entries=None):
 				fd_match = first_data[-match_len:]
 				if all(e.data[-match_len:] == fd_match for e in entries[1:]):
 					print '[i] Common postfix: {0}'.format(':'.join(
-						COLORS[len(Flow.DIRECTIONS)]('{0:02x}'.format(ord(c))) for c in fd_match))
+						COLORS[len(Flow.DIRECTIONS)](hexlify(c)) for c in fd_match))
 					break
 
 		all_same = (len(set(e.data for e in entries)) == 1)
@@ -69,7 +70,7 @@ def diff_flows(flows, skip_offset=None, max_entries=None):
 			print ''
 			print ' '.join(('..' if (n in common_bytes and i) else COLORS[
 				next(bi for bi, be in enumerate(entries) if len(be.data) >= n + 1 and
-					be.data[n] == c)]('{0:02x}'.format(ord(c))))
+					be.data[n] == c)](hexlify(c)))
 				for n, c in enumerate(entry.data))
 	
 		if all_same:
