@@ -27,7 +27,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 from flow import Flow
-from itertools import izip, islice
+from itertools import izip, islice, chain
 from binascii import hexlify
 from ui import COLORS, horizontal_separator, width
 
@@ -68,19 +68,28 @@ def diff_flows(flows, skip_offset=None, max_entries=None):
 
 		for i, entry in enumerate(entries):
 			print ''
-			dump = [('..' if (n in common_bytes and i) else COLORS[
+			hexdump, asciidump = ([(empty if (n in common_bytes and i) else COLORS[
 				next(bi for bi, be in enumerate(entries) if len(be.data) >= n + 1 and
-					be.data[n] == c)](hexlify(c)))
-				for n, c in enumerate(entry.data)]
-			bytes_per_line = (width - (1 + 8 + 1)) / 13 * 4
+					be.data[n] == c)](conv(c)))
+				for n, c in enumerate(entry.data)] for empty, conv in
+				(('..', hexlify), ('.', asciify)))
+			bytes_per_line = (width - (1 + 8 + 2 + 2)) / 17 * 4
 			for offset in xrange(0, len(entry.data), bytes_per_line):
-				print '{0:08x}  {1}'.format(offset, '  '.join(
-					' '.join(dump[do:do + 4]) for do in xrange(offset, offset + bytes_per_line, 4)))
+				print '{offset:08x}  {hex}  {ascii}'.format(offset=offset,
+					hex='  '.join(' '.join(padspace(hexdump[do:do + 4], 4))
+						for do in xrange(offset, offset + bytes_per_line, 4)),
+					ascii=''.join(asciidump[offset:offset + bytes_per_line]))
 	
 		if all_same:
 			print '(all entries are the same)'
 
 		horizontal_separator()
+
+def padspace(data, length):
+	return data if len(data) >= length else chain(data, ['  '] * (length - len(data)))
+
+def asciify(bytestr):
+	return bytestr if 0x20 <= ord(bytestr) <= 0x7e else '.'
 
 def look_for_length_byte(entries):
 	for i, pos_bytes in enumerate(izip(*(e.data for e in entries))):
