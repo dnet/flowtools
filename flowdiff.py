@@ -27,7 +27,8 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 from flow import Flow
-from itertools import izip, islice, chain
+from itertools import izip, islice, imap, chain
+from operator import attrgetter
 from binascii import hexlify
 from ui import COLORS, horizontal_separator, width
 
@@ -100,10 +101,10 @@ def look_for_length_byte(entries):
 
 def look_for_fix_diff(entries):
 	pos_bytes_range = range(1, len(entries))
-	for i, pos_bytes_1 in enumerate(izip(*(e.data for e in entries))):
+	for i, pos_bytes_1 in enumerate(izip(*imap(attrgetter('data'), entries))):
 		if len(set(pos_bytes_1)) == 1:
 			continue
-		for j, pos_bytes_2 in islice(enumerate(izip(*(e.data for e in entries))), i):
+		for j, pos_bytes_2 in islice(enumerate(izip(*imap(attrgetter('data'), entries))), i):
 			diff = ord(pos_bytes_1[0]) - ord(pos_bytes_2[0])
 			for k in pos_bytes_range:
 				if ord(pos_bytes_1[k]) - ord(pos_bytes_2[k]) != diff:
