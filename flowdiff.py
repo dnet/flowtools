@@ -127,6 +127,7 @@ def main():
 	filenames = []
 	skip_offset = {}
 	max_entries = None
+	decode_func = None
 	try:
 		while n < len(argv):
 			arg = argv[n]
@@ -139,6 +140,10 @@ def main():
 			elif arg == '-r':
 				n += 1
 				skip_offset[Flow.RECEIVED] = int(argv[n])
+			elif arg == '-d':
+				n += 1
+				mod_name, func_name = argv[n].split('.')
+				decode_func = getattr(__import__(mod_name), func_name)
 			else:
 				filenames.append(arg)
 			n += 1
@@ -148,7 +153,7 @@ def main():
 		print_usage()
 		raise SystemExit(1)
 	else:
-		flows = [Flow(fn) for fn in filenames]
+		flows = [Flow(fn, decode_func=decode_func) for fn in filenames]
 		diff_flows(flows, skip_offset=skip_offset, max_entries=max_entries)
 		print 'Input files:'
 		for n, fn in enumerate(filenames):
@@ -156,7 +161,7 @@ def main():
 
 def print_usage():
 	from sys import argv, stderr
-	print >> stderr, "Usage: {0} [-m max_entries] [-s skip_sent_bytes] [-r skip_recvd_bytes] <filename> ...".format(argv[0])
+	print >> stderr, "Usage: {0} [-m max_entries] [-s skip_sent_bytes] [-r skip_recvd_bytes] [-d decode_function] <filename> ...".format(argv[0])
 
 if __name__ == '__main__':
 	main()

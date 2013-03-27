@@ -21,6 +21,7 @@ following command line arguments.
  - `-s n` ignores *sent* flow entries with an offset lower than `n`
  - `-r n` ignores *received* flow entries with an offset lower than `n`
  - `-m n` displays only the first `n` flow entries
+ - `-d foo.bar` applies `bar()` from module `foo` to all data for decoding
 
 ![Flowdiff screenshot](doc/flowdiff-screenshot.png)
 
