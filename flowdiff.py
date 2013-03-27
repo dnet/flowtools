@@ -52,9 +52,10 @@ def diff_flows(flows, skip_offset=None, max_entries=None):
 		min_len = min(lengths)
 		first_data = entries_bytes[0]
 		common_bytes = [n for n in xrange(min_len) if all(e[n] == first_data[n] for e in entries_bytes[1:])]
+		enum_izip_entries_bytes = tuple(enumerate(izip(*entries_bytes)))
 		
 		if len(lengths) > 1:
-			look_for_length_byte(entries_bytes)
+			look_for_length_byte(entries_bytes, enum_izip_entries_bytes)
 			for match_len in xrange(min_len - 1, 0, -1):
 				fd_match = first_data[-match_len:]
 				if all(e[-match_len:] == fd_match for e in entries_bytes[1:]):
@@ -66,7 +67,7 @@ def diff_flows(flows, skip_offset=None, max_entries=None):
 		if all_same:
 			entries = (entries[0],)
 		else:
-			look_for_fix_diff(entries_bytes)
+			look_for_fix_diff(len(entries), enum_izip_entries_bytes)
 
 		for i, entry in enumerate(entries):
 			print ''
@@ -93,19 +94,19 @@ def padspace(data, length):
 def asciify(bytestr):
 	return bytestr if 0x20 <= ord(bytestr) <= 0x7e else '.'
 
-def look_for_length_byte(entries):
-	for i, pos_bytes in enumerate(izip(*entries)):
+def look_for_length_byte(entries, enum_izip_entries_bytes):
+	for i, pos_bytes in enum_izip_entries_bytes:
 		diffs = set(b - len(e) for e, b in izip(entries, pos_bytes))
 		if len(diffs) == 1:
 			diff = abs(next(iter(diffs)))
 			print '[i] Possible length byte at offset 0x{0:02x}, diff = {1}'.format(i, diff)
 
-def look_for_fix_diff(entries):
-	pos_bytes_range = range(1, len(entries))
-	for i, pos_bytes_1 in enumerate(izip(*entries)):
+def look_for_fix_diff(entries_num, enum_izip_entries_bytes):
+	pos_bytes_range = range(1, entries_num)
+	for i, pos_bytes_1 in enum_izip_entries_bytes:
 		if len(set(pos_bytes_1)) == 1:
 			continue
-		for j, pos_bytes_2 in islice(enumerate(izip(*entries)), i):
+		for j, pos_bytes_2 in islice(enum_izip_entries_bytes, i):
 			diff = pos_bytes_1[0] - pos_bytes_2[0]
 			for k in pos_bytes_range:
 				if pos_bytes_1[k] - pos_bytes_2[k] != diff:
