@@ -39,7 +39,8 @@ def diff_flows(flows, skip_offset=None, max_entries=None):
 		if max_entries is not None and entry_no == max_entries:
 			break
 
-		lengths = set(len(e.data) for e in entries)
+		entries_bytes = tuple(tuple(imap(ord, data)) for data in imap(attrgetter('data'), entries))
+		lengths = set(imap(len, entries_bytes))
 		print '[i] E{entry_no} // {dirs} // Offset: {offsets} // Length: {lens}'.format(
 				entry_no=entry_no,
 				offsets=sorted(set(e.offset for e in entries)),
@@ -49,23 +50,23 @@ def diff_flows(flows, skip_offset=None, max_entries=None):
 				lens=sorted(lengths))
 
 		min_len = min(lengths)
-		first_data = entries[0].data
-		common_bytes = [n for n in xrange(min_len) if all(e.data[n] == first_data[n] for e in entries[1:])]
+		first_data = entries_bytes[0]
+		common_bytes = [n for n in xrange(min_len) if all(e[n] == first_data[n] for e in entries_bytes[1:])]
 		
 		if len(lengths) > 1:
-			look_for_length_byte(entries)
+			look_for_length_byte(entries_bytes)
 			for match_len in xrange(min_len - 1, 0, -1):
 				fd_match = first_data[-match_len:]
-				if all(e.data[-match_len:] == fd_match for e in entries[1:]):
+				if all(e[-match_len:] == fd_match for e in entries_bytes[1:]):
 					print '[i] Common postfix: {0}'.format(':'.join(
-						COLORS[len(Flow.DIRECTIONS)](hexlify(c)) for c in fd_match))
+						COLORS[len(Flow.DIRECTIONS)]('{0:02x}'.format(c)) for c in fd_match))
 					break
 
-		all_same = (len(set(e.data for e in entries)) == 1)
+		all_same = (len(set(entries_bytes)) == 1)
 		if all_same:
 			entries = (entries[0],)
 		else:
-			look_for_fix_diff(entries)
+			look_for_fix_diff(entries_bytes)
 
 		for i, entry in enumerate(entries):
 			print ''
@@ -93,24 +94,25 @@ def asciify(bytestr):
 	return bytestr if 0x20 <= ord(bytestr) <= 0x7e else '.'
 
 def look_for_length_byte(entries):
-	for i, pos_bytes in enumerate(izip(*(e.data for e in entries))):
-		diffs = set(ord(b) - len(e.data) for e, b in izip(entries, pos_bytes))
+	for i, pos_bytes in enumerate(izip(*entries)):
+		diffs = set(b - len(e) for e, b in izip(entries, pos_bytes))
 		if len(diffs) == 1:
 			diff = abs(next(iter(diffs)))
 			print '[i] Possible length byte at offset 0x{0:02x}, diff = {1}'.format(i, diff)
 
 def look_for_fix_diff(entries):
 	pos_bytes_range = range(1, len(entries))
-	for i, pos_bytes_1 in enumerate(izip(*imap(attrgetter('data'), entries))):
+	for i, pos_bytes_1 in enumerate(izip(*entries)):
 		if len(set(pos_bytes_1)) == 1:
 			continue
-		for j, pos_bytes_2 in islice(enumerate(izip(*imap(attrgetter('data'), entries))), i):
-			diff = ord(pos_bytes_1[0]) - ord(pos_bytes_2[0])
+		for j, pos_bytes_2 in islice(enumerate(izip(*entries)), i):
+			diff = pos_bytes_1[0] - pos_bytes_2[0]
 			for k in pos_bytes_range:
-				if ord(pos_bytes_1[k]) - ord(pos_bytes_2[k]) != diff:
+				if pos_bytes_1[k] - pos_bytes_2[k] != diff:
 					break
 			else:
-				di, dj = ('0x{0:02x} [{1}]'.format(pos, ' '.join(c(hexlify(v)) for c, v in izip(COLORS, values)))
+				di, dj = ('0x{0:02x} [{1}]'.format(pos, ' '.join(c('{0:02x}'.format(v))
+						for c, v in izip(COLORS, values)))
 						for pos, values in ((i, pos_bytes_1), (j, pos_bytes_2)))
 				fmt = ('[i] difference between bytes {0} and {1} is always {2}'
 						if diff else '[i] bytes {0} and {1} always match')
