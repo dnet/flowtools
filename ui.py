@@ -34,4 +34,4 @@ COLORS = [T.cyan, T.green, T.yellow, T.red]
 width = T.width
 
 def horizontal_separator():
-	print(T.bold_black('-' * (T.width - 1)))
+	print(T.bold_black('-' * (width - 1)))
