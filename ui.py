@@ -30,7 +30,7 @@ from __future__ import print_function
 from blessings import Terminal
 
 T = Terminal()
-COLORS = [T.cyan, T.green, T.yellow, T.red]
+COLORS = [T.cyan, T.green, T.yellow, T.red, T.magenta, T.blue]
 width = T.width
 if width is None:
 	import os
