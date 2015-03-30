@@ -86,4 +86,5 @@ def load_flow(flow_file, decode_func=None):
 				wait_data = None
 			else:
 				yield Flow.Entry(direction=direction, data=d(data), offset=offset)
-
+	if wait_data is not None:
+		yield Flow.Entry(direction=wait_direction, data=d(wait_data + data), offset=wait_offset)
