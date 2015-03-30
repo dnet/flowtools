@@ -120,44 +120,34 @@ def look_for_fix_diff(entries_num, enum_izip_entries_bytes):
 				print fmt.format(di, dj, abs(diff))
 
 def main():
-	from sys import argv
-	if '-h' in argv:
-		return print_usage()
-	n = 1
-	filenames = []
+	from argparse import ArgumentParser
+	parser = ArgumentParser(description='Diff tool for Wireshark TCP flows')
+	parser.add_argument('flow', nargs='+', help='flow files')
+	parser.add_argument('-m', '--max-entries', metavar='N', type=int,
+			help='displays only the first N flow entries')
+	parser.add_argument('-s', '--skip-sent-bytes', metavar='N', type=int,
+			help='ignores sent flow entries with an offset lower than N')
+	parser.add_argument('-r', '--skip-recv-bytes', metavar='N', type=int,
+			help='ignores received flow entries with an offset lower than N')
+	parser.add_argument('-d', '--decode-function', metavar='foo.bar',
+			help='applies bar() from module foo to all data for decoding')
+	args = parser.parse_args()
+
 	skip_offset = {}
-	max_entries = None
-	decode_func = None
-	try:
-		while n < len(argv):
-			arg = argv[n]
-			if arg == '-m':
-				n += 1
-				max_entries = int(argv[n])
-			elif arg == '-s':
-				n += 1
-				skip_offset[Flow.SENT] = int(argv[n])
-			elif arg == '-r':
-				n += 1
-				skip_offset[Flow.RECEIVED] = int(argv[n])
-			elif arg == '-d':
-				n += 1
-				mod_name, func_name = argv[n].split('.')
-				decode_func = getattr(__import__(mod_name), func_name)
-			else:
-				filenames.append(arg)
-			n += 1
-		if not filenames:
-			raise ValueError('No files were given that day')
-	except (ValueError, IndexError):
-		print_usage()
-		raise SystemExit(1)
+	if args.skip_sent_bytes:
+		skip_offset[Flow.SENT] = args.skip_sent_bytes
+	if args.skip_recv_bytes:
+		skip_offset[Flow.RECEIVED] = args.skip_recv_bytes
+	if args.decode_function:
+		mod_name, func_name = args.decode_function.split('.')
+		decode_func = getattr(__import__(mod_name), func_name)
 	else:
-		flows = [Flow(fn, decode_func=decode_func) for fn in filenames]
-		diff_flows(flows, skip_offset=skip_offset, max_entries=max_entries)
-		print 'Input files:'
-		for n, fn in enumerate(filenames):
-			print ' - ' + COLORS[n](fn)
+		decode_func = None
+	flows = [Flow(fn, decode_func=decode_func) for fn in args.flow]
+	diff_flows(flows, skip_offset=skip_offset, max_entries=args.max_entries)
+	print 'Input files:'
+	for n, fn in enumerate(args.flow):
+		print ' - ' + COLORS[n](fn)
 
 def print_usage():
 	from sys import argv, stderr
