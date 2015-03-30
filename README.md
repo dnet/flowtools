@@ -23,6 +23,9 @@ following command line arguments.
  - `-m n` displays only the first `n` flow entries
  - `-t n` displays only the first `n` patterns (fix diff + match)
  - `-d foo.bar` applies `bar()` from module `foo` to all data for decoding
+ - `-f rules` fragment packets at manual boundaries, rules are separated by
+   commas, and each consists of a letter for direction (`s` or `r`) followed
+   by a decimal or hexadecimal offset (example: `s0x34,r412,r234`)
 
 ![Flowdiff screenshot](doc/flowdiff-screenshot.png)
 

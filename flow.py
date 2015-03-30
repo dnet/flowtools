@@ -28,7 +28,7 @@
 
 from binascii import unhexlify
 from itertools import imap, ifilter
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 import re
 
 FLOW_ROW_RE = re.compile(r'^(\s*)([0-9a-f]+)\s+([0-9a-f\s]{1,49})', re.I)
@@ -40,9 +40,11 @@ class Flow(list):
 	RECEIVED = 'received'
 	DIRECTIONS = [SENT, RECEIVED]
 
-	def __init__(self, filename, decode_func=None):
+	def __init__(self, filename, decode_func=None, frag_rules=None):
 		with file(filename, 'r') as flow_file:
 			list.__init__(self, load_flow(flow_file, decode_func))
+		if frag_rules is not None:
+			self.apply_rules(parse_frag_rules(frag_rules))
 	
 	def filter_by_offset(self, skip_offset):
 		passed = set()
@@ -56,6 +58,27 @@ class Flow(list):
 			if len(passed) == len(skip_offset):
 				break
 		return self[n:]
+
+	def apply_rules(self, rules):
+		for direction, dir_rules in rules.iteritems():
+			for rule in sorted(dir_rules):
+				for index, entry in enumerate(self):
+					if entry.direction.startswith(direction) and entry_has_pos(entry, rule):
+						self.split_entry(index, rule)
+						break
+
+	def split_entry(self, index, pos):
+		e = self[index]
+		pos -= e.offset
+		self[index] = self.Entry(direction=e.direction, offset=e.offset,
+				data=e.data[:pos])
+		self.insert(index + 1, self.Entry(direction=e.direction,
+			offset=e.offset + pos, data=e.data[pos:]))
+
+def entry_has_pos(entry, pos):
+	if entry.offset > pos:
+		return False
+	return entry.offset + len(entry.data) > pos
 	
 def load_flow(flow_file, decode_func=None):
 	offset_cache = {Flow.SENT: 0, Flow.RECEIVED: 0}
@@ -88,3 +111,12 @@ def load_flow(flow_file, decode_func=None):
 				yield Flow.Entry(direction=direction, data=d(data), offset=offset)
 	if wait_data is not None:
 		yield Flow.Entry(direction=wait_direction, data=d(wait_data + data), offset=wait_offset)
+
+def parse_frag_rules(rules):
+	result = defaultdict(list)
+	if rules is not None:
+		for rule in rules.split(','):
+			offset = rule[1:]
+			result[rule[0]].append(int(offset[2:], 16)
+				if offset.startswith('0x') else int(offset))
+	return result

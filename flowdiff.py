@@ -142,6 +142,8 @@ def main():
 			help='applies bar() from module foo to all data for decoding')
 	parser.add_argument('-t', '--fix-diff-treshold', metavar='N', type=int,
 			help='displays only the first N patterns (fix diff + match)', default=5)
+	parser.add_argument('-f', '--manual-fragmentation', metavar='rules',
+			help='fragment packets at manual boundaries (see README)')
 	args = parser.parse_args()
 
 	skip_offset = {}
@@ -154,7 +156,8 @@ def main():
 		decode_func = getattr(__import__(mod_name), func_name)
 	else:
 		decode_func = None
-	flows = [Flow(fn, decode_func=decode_func) for fn in args.flow]
+	flows = [Flow(fn, decode_func=decode_func,
+		frag_rules=args.manual_fragmentation) for fn in args.flow]
 	diff_flows(flows, skip_offset=skip_offset, max_entries=args.max_entries,
 			fix_diff_treshold=args.fix_diff_treshold)
 	print 'Input files:'
