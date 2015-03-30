@@ -32,7 +32,7 @@ from operator import attrgetter
 from binascii import hexlify
 from ui import COLORS, horizontal_separator, width
 
-def diff_flows(flows, skip_offset=None, max_entries=None):
+def diff_flows(flows, skip_offset=None, max_entries=None, fix_diff_treshold=5):
 	if skip_offset is not None:
 		flows = (f.filter_by_offset(skip_offset) for f in flows)
 	for entry_no, entries in enumerate(izip(*flows)):
@@ -66,8 +66,10 @@ def diff_flows(flows, skip_offset=None, max_entries=None):
 		all_same = (len(set(entries_bytes)) == 1)
 		if all_same:
 			entries = (entries[0],)
+		elif fix_diff_treshold:
+			look_for_fix_diff(len(entries), enum_izip_entries_bytes, fix_diff_treshold)
 		else:
-			look_for_fix_diff(len(entries), enum_izip_entries_bytes)
+			print('[i] (ignoring patterns)')
 
 		for i, entry in enumerate(entries):
 			print ''
@@ -101,8 +103,9 @@ def look_for_length_byte(entries, enum_izip_entries_bytes):
 			diff = abs(next(iter(diffs)))
 			print '[i] Possible length byte at offset 0x{0:02x}, diff = {1}'.format(i, diff)
 
-def look_for_fix_diff(entries_num, enum_izip_entries_bytes):
+def look_for_fix_diff(entries_num, enum_izip_entries_bytes, treshold):
 	pos_bytes_range = range(1, entries_num)
+	printed = 0
 	for i, pos_bytes_1 in enum_izip_entries_bytes:
 		if len(set(pos_bytes_1)) == 1:
 			continue
@@ -112,12 +115,18 @@ def look_for_fix_diff(entries_num, enum_izip_entries_bytes):
 				if pos_bytes_1[k] - pos_bytes_2[k] != diff:
 					break
 			else:
+				if printed == treshold:
+					print ('[i] (there are more patterns, but only the first '
+						'{1} shown)').format(treshold, str(treshold) + ' entries are'
+								if treshold > 1 else 'entry is')
+					return
 				di, dj = ('0x{0:02x} [{1}]'.format(pos, ' '.join(c('{0:02x}'.format(v))
 						for c, v in izip(COLORS, values)))
 						for pos, values in ((i, pos_bytes_1), (j, pos_bytes_2)))
 				fmt = ('[i] difference between bytes {0} and {1} is always {2}'
 						if diff else '[i] bytes {0} and {1} always match')
 				print fmt.format(di, dj, abs(diff))
+				printed += 1
 
 def main():
 	from argparse import ArgumentParser
@@ -131,6 +140,8 @@ def main():
 			help='ignores received flow entries with an offset lower than N')
 	parser.add_argument('-d', '--decode-function', metavar='foo.bar',
 			help='applies bar() from module foo to all data for decoding')
+	parser.add_argument('-t', '--fix-diff-treshold', metavar='N', type=int,
+			help='displays only the first N patterns (fix diff + match)', default=5)
 	args = parser.parse_args()
 
 	skip_offset = {}
@@ -144,7 +155,8 @@ def main():
 	else:
 		decode_func = None
 	flows = [Flow(fn, decode_func=decode_func) for fn in args.flow]
-	diff_flows(flows, skip_offset=skip_offset, max_entries=args.max_entries)
+	diff_flows(flows, skip_offset=skip_offset, max_entries=args.max_entries,
+			fix_diff_treshold=args.fix_diff_treshold)
 	print 'Input files:'
 	for n, fn in enumerate(args.flow):
 		print ' - ' + COLORS[n](fn)
