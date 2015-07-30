@@ -71,15 +71,16 @@ def diff_flows(flows, skip_offset=None, max_entries=None, fix_diff_treshold=5):
 		else:
 			print('[i] (ignoring patterns)')
 
-		for i, entry in enumerate(entries):
+		blobs = [entry.data for entry in entries]
+		for i, data in enumerate(blobs):
 			print ''
 			hexdump, asciidump = ([(empty if (n in common_bytes and i) else COLORS[
-				next(bi for bi, be in enumerate(entries) if len(be.data) >= n + 1 and
-					be.data[n] == c)](conv(c)))
-				for n, c in enumerate(entry.data)] for empty, conv in
+				next(bi for bi, bd in enumerate(blobs) if len(bd) >= n + 1 and
+					bd[n] == c)](conv(c)))
+				for n, c in enumerate(data)] for empty, conv in
 				(('..', hexlify), ('.', asciify)))
 			bytes_per_line = (width - (1 + 8 + 2 + 2)) / 17 * 4
-			for offset in xrange(0, len(entry.data), bytes_per_line):
+			for offset in xrange(0, len(data), bytes_per_line):
 				print '{offset:08x}  {hex}  {ascii}'.format(offset=offset,
 					hex='  '.join(' '.join(padspace(hexdump[do:do + 4], 4))
 						for do in xrange(offset, offset + bytes_per_line, 4)),
