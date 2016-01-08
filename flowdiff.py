@@ -30,7 +30,7 @@ from flow import Flow
 from itertools import izip, islice, imap, chain
 from operator import attrgetter
 from binascii import hexlify
-from ui import COLORS, horizontal_separator, width
+from ui import COLORS, horizontal_separator, width, print_input_filenames
 
 def diff_flows(flows, skip_offset=None, max_entries=None, fix_diff_treshold=5):
 	if skip_offset is not None:
@@ -161,9 +161,7 @@ def main():
 		frag_rules=args.manual_fragmentation) for fn in args.flow]
 	diff_flows(flows, skip_offset=skip_offset, max_entries=args.max_entries,
 			fix_diff_treshold=args.fix_diff_treshold)
-	print 'Input files:'
-	for n, fn in enumerate(args.flow):
-		print ' - ' + COLORS[n](fn)
+	print_input_filenames(args.flow)
 
 def print_usage():
 	from sys import argv, stderr

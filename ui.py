@@ -28,6 +28,7 @@
 
 from __future__ import print_function
 from blessings import Terminal
+from itertools import izip
 
 T = Terminal()
 COLORS = [T.cyan, T.green, T.yellow, T.red, T.magenta, T.blue]
@@ -38,3 +39,8 @@ if width is None:
 
 def horizontal_separator():
 	print(T.bold_black('-' * (width - 1)))
+
+def print_input_filenames(filenames):
+	print('Input files:')
+	for color, fn in izip(COLORS, filenames):
+		print(' -', color(fn))

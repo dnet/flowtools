@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 
-from ui import COLORS
+from ui import print_input_filenames
 from flow import Flow
 from flowdiff import diff_flows
-from itertools import izip
 from sys import argv
 
 class FileEntry(object):
@@ -17,9 +16,7 @@ class FileEntry(object):
 def main():
 	filenames = argv[1:]
 	diff_flows([[FileEntry(fn)] for fn in filenames])
-	print 'Input files:'
-	for color, fn in izip(COLORS, filenames):
-		print ' - ' + color(fn)
+        print_input_filenames(filenames)
 
 if __name__ == '__main__':
 	main()
