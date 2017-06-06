@@ -32,7 +32,7 @@ following command line arguments.
 Flowfake
 --------
 
-Flowfake makes it possible to create a dump but simple fake client or server
+Flowfake makes it possible to create a dumb but simple fake client or server
 in no time, based on captured network flow. It could be used to replay the
 same traffic multiple times to gather distinct responses for further analysis.
 The logic used is really basic, it parses the flow, and if an entry was sent,
