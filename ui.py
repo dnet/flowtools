@@ -26,9 +26,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-from __future__ import print_function
 from blessings import Terminal
-from itertools import izip
 
 T = Terminal()
 COLORS = [T.cyan, T.green, T.yellow, T.red, T.magenta, T.blue]
@@ -42,5 +40,5 @@ def horizontal_separator():
 
 def print_input_filenames(filenames):
 	print('Input files:')
-	for color, fn in izip(COLORS, filenames):
+	for color, fn in zip(COLORS, filenames):
 		print(' -', color(fn))

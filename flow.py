@@ -27,7 +27,6 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 from binascii import unhexlify
-from itertools import imap, ifilter
 from collections import namedtuple, defaultdict
 import re
 
@@ -60,7 +59,7 @@ class Flow(list):
 		return self[n:]
 
 	def apply_rules(self, rules):
-		for direction, dir_rules in rules.iteritems():
+		for direction, dir_rules in rules.items():
 			for rule in sorted(dir_rules):
 				for index, entry in enumerate(self):
 					if entry.direction.startswith(direction) and entry_has_pos(entry, rule):
@@ -86,7 +85,7 @@ def load_flow(flow_file, decode_func=None):
 	wait_offset = None
 	wait_data = None
 	d = decode_func if decode_func is not None else lambda x: x
-	for m in ifilter(None, imap(FLOW_ROW_RE.match, flow_file)):
+	for m in filter(None, map(FLOW_ROW_RE.match, flow_file)):
 		direction = Flow.SENT if m.group(1) == '' else Flow.RECEIVED
 		offset = int(m.group(2), 16)
 		data = unhexlify(NON_HEX_RE.sub('', m.group(3)))

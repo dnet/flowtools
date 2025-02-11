@@ -53,5 +53,5 @@ The whole project is available under MIT license.
 Dependencies
 ------------
 
- - Python 2.7 (tested on 2.7.9)
+ - Python 3 (tested on 3.13.1)
  - Blessings https://github.com/erikrose/blessings (for `flowdiff` only)

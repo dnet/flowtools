@@ -27,7 +27,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 from flow import Flow
-from itertools import izip, islice, imap, chain
+from itertools import islice, chain
 from operator import attrgetter
 from binascii import hexlify
 from ui import COLORS, horizontal_separator, width, print_input_filenames
@@ -35,32 +35,32 @@ from ui import COLORS, horizontal_separator, width, print_input_filenames
 def diff_flows(flows, skip_offset=None, max_entries=None, fix_diff_treshold=5):
 	if skip_offset is not None:
 		flows = (f.filter_by_offset(skip_offset) for f in flows)
-	for entry_no, entries in enumerate(izip(*flows)):
+	for entry_no, entries in enumerate(zip(*flows)):
 		if max_entries is not None and entry_no == max_entries:
 			break
 
-		entries_bytes = tuple(tuple(imap(ord, data)) for data in imap(attrgetter('data'), entries))
-		lengths = set(imap(len, entries_bytes))
-		print '[i] E{entry_no} // {dirs} // Offset: {offsets} // Length: {lens}'.format(
+		entries_bytes = tuple(tuple(data) for data in map(attrgetter('data'), entries))
+		lengths = set(map(len, entries_bytes))
+		print('[i] E{entry_no} // {dirs} // Offset: {offsets} // Length: {lens}'.format(
 				entry_no=entry_no,
 				offsets=sorted(set(e.offset for e in entries)),
 				dirs='/'.join(sorted(set(
 					COLORS[Flow.DIRECTIONS.index(e.direction)](e.direction)
 					for e in entries))),
-				lens=sorted(lengths))
+				lens=sorted(lengths)))
 
 		min_len = min(lengths)
 		first_data = entries_bytes[0]
-		common_bytes = [n for n in xrange(min_len) if all(e[n] == first_data[n] for e in entries_bytes[1:])]
-		enum_izip_entries_bytes = tuple(enumerate(izip(*entries_bytes)))
+		common_bytes = [n for n in range(min_len) if all(e[n] == first_data[n] for e in entries_bytes[1:])]
+		enum_izip_entries_bytes = tuple(enumerate(zip(*entries_bytes)))
 		
 		if len(lengths) > 1:
 			look_for_length_byte(entries_bytes, enum_izip_entries_bytes)
-			for match_len in xrange(min_len - 1, 0, -1):
+			for match_len in range(min_len - 1, 0, -1):
 				fd_match = first_data[-match_len:]
 				if all(e[-match_len:] == fd_match for e in entries_bytes[1:]):
-					print '[i] Common postfix: {0}'.format(':'.join(
-						COLORS[len(Flow.DIRECTIONS)]('{0:02x}'.format(c)) for c in fd_match))
+					print('[i] Common postfix: {0}'.format(':'.join(
+						COLORS[len(Flow.DIRECTIONS)]('{0:02x}'.format(c)) for c in fd_match)))
 					break
 
 		all_same = (len(set(entries_bytes)) == 1)
@@ -73,39 +73,39 @@ def diff_flows(flows, skip_offset=None, max_entries=None, fix_diff_treshold=5):
 
 		blobs = [entry.data for entry in entries]
 		for i, data in enumerate(blobs):
-			print ''
+			print()
 			hexdump, asciidump = ([(empty if (n in common_bytes and i) else COLORS[
 				next(bi for bi, bd in enumerate(blobs) if len(bd) >= n + 1 and
-					bd[n] == c)](conv(c)))
+					bd[n] == c)](conv(bytes([c])).decode('ascii')))
 				for n, c in enumerate(data)] for empty, conv in
 				(('..', hexlify), ('.', asciify)))
-			bytes_per_line = (width - (1 + 8 + 2 + 2)) / 17 * 4
-			for offset in xrange(0, len(data), bytes_per_line):
-				print '{offset:08x}  {hex}  {ascii}'.format(offset=offset,
+			bytes_per_line = (width - (1 + 8 + 2 + 2)) // 17 * 4
+			for offset in range(0, len(data), bytes_per_line):
+				print('{offset:08x}  {hex}  {ascii}'.format(offset=offset,
 					hex='  '.join(' '.join(padspace(hexdump[do:do + 4], 4))
-						for do in xrange(offset, offset + bytes_per_line, 4)),
-					ascii=''.join(asciidump[offset:offset + bytes_per_line]))
+						for do in range(offset, offset + bytes_per_line, 4)),
+					ascii=''.join(asciidump[offset:offset + bytes_per_line])))
 	
 		if all_same:
-			print '(all entries are the same)'
+			print('(all entries are the same)')
 
 		horizontal_separator()
 
-def padspace(data, length):
+def padspace(data: bytes, length: int):
 	return data if len(data) >= length else chain(data, ['  '] * (length - len(data)))
 
-def asciify(bytestr):
-	return bytestr if 0x20 <= ord(bytestr) <= 0x7e else '.'
+def asciify(bytestr: bytes) -> bytes:
+	return bytestr if 0x20 <= bytestr[0] <= 0x7e else b'.'
 
 def look_for_length_byte(entries, enum_izip_entries_bytes):
 	for i, pos_bytes in enum_izip_entries_bytes:
-		diffs = set(b - len(e) for e, b in izip(entries, pos_bytes))
+		diffs = set(b - len(e) for e, b in zip(entries, pos_bytes))
 		if len(diffs) == 1:
 			diff = abs(next(iter(diffs)))
-			print '[i] Possible length byte at offset 0x{0:02x}, diff = {1}'.format(i, diff)
+			print('[i] Possible length byte at offset 0x{0:02x}, diff = {1}'.format(i, diff))
 
-def look_for_fix_diff(entries_num, enum_izip_entries_bytes, treshold):
-	pos_bytes_range = range(1, entries_num)
+def look_for_fix_diff(entries_num, enum_izip_entries_bytes, treshold: int):
+	pos_bytes_range = list(range(1, entries_num))
 	printed = 0
 	for i, pos_bytes_1 in enum_izip_entries_bytes:
 		if len(set(pos_bytes_1)) == 1:
@@ -117,16 +117,16 @@ def look_for_fix_diff(entries_num, enum_izip_entries_bytes, treshold):
 					break
 			else:
 				if printed == treshold:
-					print ('[i] (there are more patterns, but only the first '
+					print(('[i] (there are more patterns, but only the first '
 						'{1} shown)').format(treshold, str(treshold) + ' entries are'
-								if treshold > 1 else 'entry is')
+								if treshold > 1 else 'entry is'))
 					return
 				di, dj = ('0x{0:02x} [{1}]'.format(pos, ' '.join(c('{0:02x}'.format(v))
-						for c, v in izip(COLORS, values)))
+						for c, v in zip(COLORS, values)))
 						for pos, values in ((i, pos_bytes_1), (j, pos_bytes_2)))
 				fmt = ('[i] difference between bytes {0} and {1} is always {2}'
 						if diff else '[i] bytes {0} and {1} always match')
-				print fmt.format(di, dj, abs(diff))
+				print(fmt.format(di, dj, abs(diff)))
 				printed += 1
 
 def main():
@@ -165,7 +165,7 @@ def main():
 
 def print_usage():
 	from sys import argv, stderr
-	print >> stderr, "Usage: {0} [-m max_entries] [-s skip_sent_bytes] [-r skip_recvd_bytes] [-d decode_function] <filename> ...".format(argv[0])
+	print("Usage: {0} [-m max_entries] [-s skip_sent_bytes] [-r skip_recvd_bytes] [-d decode_function] <filename> ...".format(argv[0]), file=stderr)
 
 if __name__ == '__main__':
 	main()

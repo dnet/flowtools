@@ -10,7 +10,7 @@ class FileEntry(object):
 	direction = Flow.RECEIVED
 
 	def __init__(self, filename):
-		with file(filename) as f:
+		with open(filename, 'rb') as f:
 			self.data = f.read()
 
 def main():
