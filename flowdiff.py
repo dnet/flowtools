@@ -118,7 +118,7 @@ def look_for_fix_diff(entries_num, enum_izip_entries_bytes, treshold: int):
 			else:
 				if printed == treshold:
 					print(('[i] (there are more patterns, but only the first '
-						'{1} shown)').format(treshold, str(treshold) + ' entries are'
+						'{0} shown)').format(str(treshold) + ' entries are'
 								if treshold > 1 else 'entry is'))
 					return
 				di, dj = ('0x{0:02x} [{1}]'.format(pos, ' '.join(c('{0:02x}'.format(v))
