@@ -16,7 +16,7 @@ class FileEntry(object):
 def main():
 	filenames = argv[1:]
 	diff_flows([[FileEntry(fn)] for fn in filenames])
-        print_input_filenames(filenames)
+	print_input_filenames(filenames)
 
 if __name__ == '__main__':
 	main()
