@@ -121,7 +121,7 @@ def look_for_fix_diff(entries_num, enum_izip_entries_bytes, treshold: int):
 						'{0} shown)').format(str(treshold) + ' entries are'
 								if treshold > 1 else 'entry is'))
 					return
-				di, dj = ('0x{0:02x} [{1}]'.format(pos, ' '.join(c('{0:02x}'.format(v))
+				di, dj = ('0x{0:02x} [{1}]'.format(pos, ' '.join(c(f'{v:02x}')
 						for c, v in zip(COLORS, values)))
 						for pos, values in ((i, pos_bytes_1), (j, pos_bytes_2)))
 				fmt = ('[i] difference between bytes {0} and {1} is always {2}'
@@ -165,7 +165,7 @@ def main():
 
 def print_usage():
 	from sys import argv, stderr
-	print("Usage: {0} [-m max_entries] [-s skip_sent_bytes] [-r skip_recvd_bytes] [-d decode_function] <filename> ...".format(argv[0]), file=stderr)
+	print(f"Usage: {argv[0]} [-m max_entries] [-s skip_sent_bytes] [-r skip_recvd_bytes] [-d decode_function] <filename> ...", file=stderr)
 
 if __name__ == '__main__':
 	main()
